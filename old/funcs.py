@@ -111,15 +111,71 @@ def earnings_dates2intervals(earnings_periods):
 
 ### Analysis of Return Ratio Normality and Estimation of Drift/Volatility
 
-cool_stocks = ['MSFT'] #, 'GOOG']
-cool_earnings_dates = get_past_earnings_periods(cool_stocks, num_dates=8)
-cool_earnings_intervals = earnings_dates2intervals(cool_earnings_dates)
+# cool_stocks = ['MSFT'] #, 'GOOG']
+# cool_earnings_dates = get_past_earnings_periods(cool_stocks, num_dates=8)
+# cool_earnings_intervals = earnings_dates2intervals(cool_earnings_dates)
 
 
 for ticker in cool_earnings_intervals:
     for interval in cool_earnings_intervals[ticker]:
         interval_price_data, data_increments = get_real_prices(ticker, interval)
         plot_real_prices(interval_price_data, data_increments)
+
+class StockData:
+    def __init__(self, ticker_name, start_date, end_date):
+        import plotly.graph_objects
+        import yfinance
+        OHLC = ["Open", "High", "Low", "Close"]
+        self.history = yfinance.Ticker(ticker_name).history(
+                start = start_date, 
+                end = end_date,
+                interval = '1d'
+            )
+        self.candlestick = plotly.graph_objects.Figure(
+            data=[
+                plotly.graph_objects.Candlestick(
+                    x=self.history.index,
+                    open=self.history['Open'],
+                    high=self.history['High'],
+                    low=self.history['Low'],
+                    close=self.history['Close']
+                )
+            ]
+        )
+        self.candlestick.update_xaxes(
+            rangebreaks=[ 
+                { 'values': ['2023-01-02', '2023-01-16', '2023-02-20', '2023-04-07', '2023-05-29', '2023-06-19', '2023-07-04', '2023-09-04'] },
+                { 'pattern': 'day of week', 'bounds': ['sat', 'mon']},
+                #{ 'pattern': 'hour', 'bounds':[16,9.5]}
+            ]
+        )
+        self.line = plotly.graph_objects.Figure(
+            data=[
+                plotly.graph_objects.Scatter(
+                    x=self.history.index,
+                    y=self.history['High'],
+                    name = "High"
+                ),
+                plotly.graph_objects.Scatter(
+                    x=self.history.index,
+                    y=self.history['Low'],
+                    name = "Low"
+                    
+                ),
+                plotly.graph_objects.Scatter(
+                    x=self.history.index,
+                    y=self.history['Close'],
+                    name = "Close"
+                    
+                )                
+            ]
+        )
+        self.line.update_xaxes(
+            rangebreaks=[ 
+                { 'pattern': 'day of week', 'bounds': ['sat', 'mon']},
+                #{ 'pattern': 'hour', 'bounds':[16,9.5]}
+            ]
+        )
 
 #cool_stock_data = get_real_stock_prices(cool_stocks, ['2012-01-01', '2017-01-01'])
 #plot_real_stock_price(cool_stock_data)
